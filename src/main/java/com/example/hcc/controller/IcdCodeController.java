@@ -1,0 +1,43 @@
+package com.example.hcc.controller;
+
+import com.example.hcc.entity.IcdCode;
+import com.example.hcc.service.IcdCodeService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/icd-codes")
+@RequiredArgsConstructor
+public class IcdCodeController {
+
+    private final IcdCodeService service;
+
+    @PostMapping
+    public IcdCode create(@RequestBody IcdCode code) {
+        return service.create(code);
+    }
+
+    @GetMapping
+    public List<IcdCode> getAll() {
+        return service.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public IcdCode getById(@PathVariable Long id) {
+        return service.getById(id);
+    }
+
+    @PutMapping("/{id}")
+    public IcdCode update(@PathVariable Long id,
+                          @RequestBody IcdCode code) {
+        return service.update(id, code);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
+    }
+}
+
