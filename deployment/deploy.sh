@@ -6,7 +6,7 @@ IMAGE_TAG="latest"
 IMAGE_TAR_FILE="hcc-service.tar"
 
 #KEY_PATH="/Users/abhishekgupta/Desktop/hcc/hcc-keypair.pem"
-#EC2_IP="3.88.1.70"
+#EC2_IP="54.84.217.140"
 #EC2_USER=ubuntu
 
 # Runtime inputs
