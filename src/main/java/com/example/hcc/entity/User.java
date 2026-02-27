@@ -52,8 +52,11 @@ public class User{
             createdAt = LocalDateTime.now();
         }
 
-        if (password != null && !password.isBlank() &&
-                !password.startsWith("$2a$") && !password.startsWith("$2b$")) {
+        if (password != null && !password.isBlank()
+                && !password.startsWith("$2a$")
+                && !password.startsWith("$2b$")) {
+
+            password = PASSWORD_ENCODER.encode(password);
         }
     }
 }

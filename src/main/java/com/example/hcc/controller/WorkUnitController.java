@@ -1,5 +1,6 @@
 package com.example.hcc.controller;
 
+import com.example.hcc.dto.AssignWorkUnitsRequest;
 import com.example.hcc.entity.WorkUnit;
 import com.example.hcc.service.WorkUnitService;
 import lombok.RequiredArgsConstructor;
@@ -44,9 +45,9 @@ public class WorkUnitController {
     @PostMapping("/assign")
     public ResponseEntity<String> assignWork(
             @RequestParam Long coderId,
-            @RequestBody List<Long> workUnitIds) {
+            @RequestBody AssignWorkUnitsRequest assignWorkUnitsRequest) {
 
-        String message = service.assignToCoder(coderId, workUnitIds);
+        String message = service.assignToCoder(coderId, assignWorkUnitsRequest.getWorkUnitIds());
         return ResponseEntity.ok(message);    }
 
     // 2️⃣ Coder fetches assigned work
