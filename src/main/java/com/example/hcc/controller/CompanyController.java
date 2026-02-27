@@ -1,6 +1,6 @@
 package com.example.hcc.controller;
 
-import com.example.hcc.dto.BulkDeactivateRequest;
+import com.example.hcc.dto.BulkStatusRequest;
 import com.example.hcc.dto.ExtractDataResponse;
 import com.example.hcc.entity.Company;
 import com.example.hcc.service.CompanyService;
@@ -43,15 +43,20 @@ public class CompanyController {
         service.delete(id);
     }
 
-    @PutMapping("/bulk-deactivate")
-    public ResponseEntity<?> bulkDeactivate(
-            @Valid @RequestBody BulkDeactivateRequest request) {
+    @PutMapping("/bulk-status-update")
+    public ResponseEntity<?> bulkStatusUpdate(
+            @Valid @RequestBody BulkStatusRequest request) {
 
-        int deleted = service.bulkDeactivate(request.getIds());
+        int deleted = service.bulkStatusUpdate(request.getIds(), request.getStatus());
 
         return ResponseEntity.ok(
                 new ExtractDataResponse("SUCCESS",
-                        deleted + " companies deleted successfully")
+                        deleted + " companies status updated successfully")
         );
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<Company>> getAllActiveCompanies() {
+        return ResponseEntity.ok(service.getAllActiveCompanies());
     }
 }

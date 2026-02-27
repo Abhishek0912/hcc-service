@@ -1,6 +1,7 @@
 package com.example.hcc.service;
 
 import com.example.hcc.entity.Company;
+import com.example.hcc.enums.Status;
 import com.example.hcc.exceptions.ResourceNotFoundException;
 import com.example.hcc.repository.CompanyRepository;
 import jakarta.transaction.Transactional;
@@ -47,7 +48,11 @@ public class CompanyService {
     }
 
     @Transactional
-    public int bulkDeactivate(List<Long> projectIds) {
-        return repo.markInactiveByIds(projectIds);
+    public int bulkStatusUpdate(List<Long> projectIds, Status status) {
+        return repo.bulkStatusUpdate(projectIds, status.name());
+    }
+
+    public List<Company> getAllActiveCompanies() {
+        return repo.findAllByStatus(Status.ACTIVE);
     }
 }
