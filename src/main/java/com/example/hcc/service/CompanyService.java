@@ -26,9 +26,19 @@ public class CompanyService {
         return repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Company not found"));
     }
 
-    public Company update(Long id, Company company) {
-        company.setId(id);
-        return repo.save(company);
+    public Company update(Long id, Company incoming) {
+        Company existing = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found"));
+
+        if (incoming.getName() != null) {
+            existing.setName(incoming.getName());
+        }
+
+        if (incoming.getAddress() != null) {
+            existing.setAddress(incoming.getAddress());
+        }
+
+        return repo.save(existing);
     }
 
     public void delete(Long id) {

@@ -25,10 +25,10 @@ CREATE TABLE company (
 CREATE TABLE projects (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     project_name VARCHAR(150),
-    project_type VARCHAR(20),  -- PROSPECTIVE, RETROSPECTIVE
+    project_type VARCHAR(50),  -- PROSPECTIVE, RETROSPECTIVE
     created_by BIGINT,
-    credentials VARCHAR(150)
-    review_mode VARCHAR(150)
+    credentials VARCHAR(150),
+    review_mode VARCHAR(150),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     FOREIGN KEY (created_by) REFERENCES users(id)
 );

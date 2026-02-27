@@ -29,7 +29,7 @@ public class CompanyController {
         return service.get(id);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public Company update(@PathVariable Long id, @RequestBody Company company) {
         return service.update(id, company);
     }

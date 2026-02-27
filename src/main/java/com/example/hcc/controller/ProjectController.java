@@ -32,7 +32,7 @@ public class ProjectController {
         return service.get(id);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ProjectResponse update(@PathVariable Long id, @RequestBody Project project) {
         Project update = service.update(id, project);
         return ProjectMapper.toResponse(update);

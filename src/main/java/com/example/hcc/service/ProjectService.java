@@ -27,9 +27,27 @@ public class ProjectService {
         return repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Project not found"));
     }
 
-    public Project update(Long id, Project project) {
-        project.setId(id);
-        return repo.save(project);
+    public Project update(Long id, Project incoming) {
+        Project existing = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
+        if (incoming.getProjectName() != null) {
+            existing.setProjectName(incoming.getProjectName());
+        }
+
+        if (incoming.getProjectType() != null) {
+            existing.setProjectType(incoming.getProjectType());
+        }
+
+        if (incoming.getCredentials() != null) {
+            existing.setCredentials(incoming.getCredentials());
+        }
+
+        if (incoming.getReviewMode() != null) {
+            existing.setReviewMode(incoming.getReviewMode());
+        }
+
+        return repo.save(existing);
     }
 
     public void delete(Long id) {
