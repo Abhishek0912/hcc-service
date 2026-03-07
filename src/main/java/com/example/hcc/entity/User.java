@@ -2,6 +2,7 @@ package com.example.hcc.entity;
 
 import com.example.hcc.enums.Role;
 import com.example.hcc.enums.Status;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,10 +15,9 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @Getter
 @Setter
-public class User{
+public class User {
 
-    private static final PasswordEncoder PASSWORD_ENCODER =
-            new BCryptPasswordEncoder();
+    private static final PasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,10 +33,15 @@ public class User{
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    @JoinColumn(name = "company_id")
+    private Company company;
+
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "created_at", insertable = true, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -46,9 +51,11 @@ public class User{
             createdAt = LocalDateTime.now();
         }
 
-        if (password != null && !password.isBlank() &&
-                !password.startsWith("$2a$") && !password.startsWith("$2b$")) {
+        if (password != null && !password.isBlank()
+                && !password.startsWith("$2a$")
+                && !password.startsWith("$2b$")) {
+
+            password = PASSWORD_ENCODER.encode(password);
         }
     }
 }
-
