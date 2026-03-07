@@ -3,8 +3,7 @@ package com.example.hcc.entity;
 import com.example.hcc.enums.UploadStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +11,9 @@ import java.time.LocalDateTime;
 @Table(name = "files")
 @Getter
 @Setter
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class FileRecord {
 
     @Id
@@ -19,19 +21,22 @@ public class FileRecord {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private Project project;
 
     private String fileName;
 
     @Column(name = "s3_path")
     private String s3Path;
+
+    private String signature;
+
     private Integer totalPages;
 
     @Enumerated(EnumType.STRING)
     private UploadStatus uploadStatus;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "created_at", insertable = true, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

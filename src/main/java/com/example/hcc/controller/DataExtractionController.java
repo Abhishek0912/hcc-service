@@ -23,7 +23,11 @@ public class DataExtractionController {
             @RequestHeader("X-Internal-Service-Key") String apiKey,
             @RequestBody DataExtractionDto dto) {
 
+        System.out.println("Incoming Extract Data Payload: " + dto);
+
         if (!expectedApiKey.equals(apiKey)) {
+            System.out.println("Unauthorized access attempt on /extract-data. Expected key: " + expectedApiKey
+                    + ", but received: " + apiKey);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Service Key");
         }
 
@@ -31,7 +35,8 @@ public class DataExtractionController {
             dataExtractionService.processExtraction(dto);
             return ResponseEntity.ok("Data successfully received and processed");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing data: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing data: " + e.getMessage());
         }
     }
 }

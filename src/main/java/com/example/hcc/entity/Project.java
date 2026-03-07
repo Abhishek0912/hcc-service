@@ -2,6 +2,7 @@ package com.example.hcc.entity;
 
 import com.example.hcc.auditing.AuditableEntity;
 import com.example.hcc.enums.ProjectType;
+import com.example.hcc.enums.Status;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -24,12 +25,15 @@ public class Project extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     private ProjectType projectType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    @JoinColumn(name = "company_id")
-    private Company company;
+    private String credentials;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "review_mode")
+    private String reviewMode;
+
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.ACTIVE;
+
+    @Column(name = "created_at", insertable = true, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -39,4 +43,3 @@ public class Project extends AuditableEntity {
         }
     }
 }
-

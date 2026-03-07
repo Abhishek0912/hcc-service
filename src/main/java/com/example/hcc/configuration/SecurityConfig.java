@@ -1,6 +1,5 @@
 package com.example.hcc.configuration;
 
-import com.example.hcc.enums.Role;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,7 +22,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(HttpMethod.POST, "/users/super-admin").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/extract-data").permitAll() // Whitelist for internal Lambda extraction results 
+                        .requestMatchers(HttpMethod.POST, "/extract-data").permitAll() // Whitelist for internal Lambda
+                                                                                       // extraction results
+                        .requestMatchers(HttpMethod.PUT, "/api/files/status").permitAll()
+                        .requestMatchers("/projects/**").permitAll()
+                        .requestMatchers("/users/**").permitAll()
+                        .requestMatchers("/companies/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").hasRole("SUPER_ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(
