@@ -4,13 +4,14 @@ import com.example.hcc.dto.DataExtractionDto;
 import com.example.hcc.entity.*;
 import com.example.hcc.enums.*;
 import com.example.hcc.repository.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,8 @@ public class DataExtractionService {
     private final PatientRepository patientRepository;
     private final WorkUnitRepository workUnitRepository;
     private final CodingResultRepository codingResultRepository;
+    private final MeatKeywordRepository meatKeywordRepository;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public void processExtraction(DataExtractionDto dto) {
@@ -53,7 +56,13 @@ public class DataExtractionService {
         // 4. Handle Encounter Details (Multiple DOS)
         if (project.getProjectType() == ProjectType.PROSPECTIVE) {
             // PROSPECTIVE: Create exactly one WorkUnit for the entire file
-            WorkUnit workUnit = new WorkUnit();
+            WorkUnit workUnit;
+            if (dto.getWorkId() != null) {
+                workUnit = workUnitRepository.findById(dto.getWorkId())
+                        .orElse(new WorkUnit());
+            } else {
+                workUnit = new WorkUnit();
+            }
             workUnit.setProject(project);
             workUnit.setFile(fileRecord);
             workUnit.setPatient(patient);
@@ -77,8 +86,21 @@ public class DataExtractionService {
                 workUnit.setEvaluate(evaluate);
                 workUnit.setAssessOrAddress(assess);
                 workUnit.setTreat(treat);
+
+                // For PROSPECTIVE, we might want to aggregate meatValidation too, but for now
+                // just store the first one or a combined version if needed.
+                // Usually details has only one entry for prospective or we take the first as
+                // reference.
+                if (!dto.getDetails().isEmpty()) {
+                    workUnit.setMeatValidation(toJson(dto.getDetails().get(0).getMeatValidation()));
+                }
             }
             workUnit = workUnitRepository.save(workUnit);
+
+            // Save MEAT Keywords
+            if (dto.getDetails() != null && !dto.getDetails().isEmpty()) {
+                saveMeatKeywords(workUnit, dto.getDetails().get(0));
+            }
 
             // Create CodingResults for each detail entry, all linked to this single
             // WorkUnit
@@ -90,6 +112,7 @@ public class DataExtractionService {
                     result.setDos(parseSafeDate(detail.getDos()));
                     result.setExtractedIcdCode(detail.getExtractedIcdCodes());
                     result.setAiIcdCode(detail.getAiSuggestedIcdCode());
+                    result.setMeatValidation(toJson(detail.getMeatValidation()));
                     codingResultRepository.save(result);
                 }
             }
@@ -97,7 +120,13 @@ public class DataExtractionService {
             // RETROPROSPECTIVE: Create one WorkUnit for each detail entry (each unique DOS)
             if (dto.getDetails() != null) {
                 for (DataExtractionDto.EncounterDetailDto detail : dto.getDetails()) {
-                    WorkUnit workUnit = new WorkUnit();
+                    WorkUnit workUnit;
+                    if (dto.getWorkId() != null) {
+                        workUnit = workUnitRepository.findById(dto.getWorkId())
+                                .orElse(new WorkUnit());
+                    } else {
+                        workUnit = new WorkUnit();
+                    }
                     workUnit.setProject(project);
                     workUnit.setFile(fileRecord);
                     workUnit.setPatient(patient);
@@ -108,7 +137,11 @@ public class DataExtractionService {
                     workUnit.setEvaluate(detail.getEvaluate());
                     workUnit.setAssessOrAddress(detail.getAssessOrAddress());
                     workUnit.setTreat(detail.getTreat());
+                    workUnit.setMeatValidation(toJson(detail.getMeatValidation()));
                     workUnit = workUnitRepository.save(workUnit);
+
+                    // Save MEAT Keywords
+                    saveMeatKeywords(workUnit, detail);
 
                     CodingResult result = new CodingResult();
                     result.setWorkUnit(workUnit);
@@ -116,9 +149,59 @@ public class DataExtractionService {
                     result.setDos(parseSafeDate(detail.getDos()));
                     result.setExtractedIcdCode(detail.getExtractedIcdCodes());
                     result.setAiIcdCode(detail.getAiSuggestedIcdCode());
+                    result.setMeatValidation(toJson(detail.getMeatValidation()));
                     codingResultRepository.save(result);
                 }
             }
+        }
+    }
+
+    private void saveMeatKeywords(WorkUnit workUnit, DataExtractionDto.EncounterDetailDto detail) {
+        if (detail == null)
+            return;
+
+        if (workUnit.getId() != null) {
+            meatKeywordRepository.deleteByWorkUnitId(workUnit.getId());
+        }
+
+        // 1. Handle explicit fields
+        saveCategoryKeywords(workUnit, "MONITORING", detail.getMonitoringKeywords());
+        saveCategoryKeywords(workUnit, "EVALUATION", detail.getEvaluationKeywords());
+        saveCategoryKeywords(workUnit, "ASSESSMENT", detail.getAssessmentKeywords());
+        saveCategoryKeywords(workUnit, "TREATMENT", detail.getTreatmentKeywords());
+
+        // 2. Handle map-based field (if plural list provided inside map)
+        Map<String, DataExtractionDto.MeatValidationDto> meatValidation = detail.getMeatValidation();
+        if (meatValidation != null) {
+            meatValidation.forEach((category, data) -> {
+                if (data != null && data.getKeywords() != null) {
+                    saveCategoryKeywords(workUnit, category.toUpperCase(), data.getKeywords());
+                }
+            });
+        }
+    }
+
+    private void saveCategoryKeywords(WorkUnit workUnit, String category, List<String> keywords) {
+        if (keywords == null)
+            return;
+        for (String keyword : keywords) {
+            MeatKeyword meatKeyword = MeatKeyword.builder()
+                    .workUnit(workUnit)
+                    .category(category)
+                    .keyword(keyword)
+                    .build();
+            meatKeywordRepository.save(meatKeyword);
+        }
+    }
+
+    private String toJson(Object obj) {
+        if (obj == null)
+            return null;
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (Exception e) {
+            System.err.println("Error serializing to JSON: " + e.getMessage());
+            return null;
         }
     }
 

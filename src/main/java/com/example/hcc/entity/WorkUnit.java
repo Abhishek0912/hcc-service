@@ -54,6 +54,9 @@ public class WorkUnit {
     private Boolean assessOrAddress;
     private Boolean treat;
 
+    @Column(name = "meat_validation", columnDefinition = "JSON")
+    private String meatValidation;
+
     @Column(name = "created_at", insertable = true, updatable = false)
     private LocalDateTime createdAt;
 
