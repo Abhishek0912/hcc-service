@@ -86,7 +86,7 @@ public class DataExtractionService {
                 workUnit.setEvaluate(evaluate);
                 workUnit.setAssessOrAddress(assess);
                 workUnit.setTreat(treat);
-                workUnit.setDateOfService(parseSafeDate(dto.getDos()));
+                workUnit.setDateOfService(parseSafeDate(dto.getDetails().get(0).getDos()));
 
 
                 // For PROSPECTIVE, we might want to aggregate meatValidation too, but for now
